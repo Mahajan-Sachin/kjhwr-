@@ -10,11 +10,11 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : '');
 
 export default function App() {
-  const [selectedDate, setSelectedDate] = useState('2026-01-15');
+  const [selectedDate, setSelectedDate] = useState('');
   const [resolution, setResolution] = useState('hourly'); // 'hourly' or 'half_hourly'
   const [cutoffHour, setCutoffHour] = useState(17);
   const [availableDates, setAvailableDates] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [evalData, setEvalData] = useState(null);
 
@@ -27,7 +27,6 @@ export default function App() {
       })
       .catch(err => {
         console.warn('Backend not running locally or connecting to fallback dates', err);
-        // Fallback January 2026 dates
         const dates = Array.from({ length: 31 }, (_, i) => `2026-01-${String(i + 1).padStart(2, '0')}`);
         setAvailableDates(dates);
       });
@@ -35,10 +34,16 @@ export default function App() {
 
   // Fetch evaluation data when date, resolution, or cutoff changes
   useEffect(() => {
-    fetchEvaluationData(selectedDate, resolution, cutoffHour);
+    if (selectedDate) {
+      fetchEvaluationData(selectedDate, resolution, cutoffHour);
+    } else {
+      setEvalData(null);
+      setErrorMsg(null);
+    }
   }, [selectedDate, resolution, cutoffHour]);
 
   const fetchEvaluationData = async (date, res, cutoff) => {
+    if (!date) return;
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -51,7 +56,7 @@ export default function App() {
         setEvalData(null);
       }
     } catch (err) {
-      setErrorMsg('Could not connect to Python backend at http://localhost:8000. Please ensure backend is running.');
+      setErrorMsg('Could not connect to Python backend. Please verify backend is active.');
       setEvalData(null);
     } finally {
       setLoading(false);
@@ -115,9 +120,7 @@ export default function App() {
             type="date"
             className="custom-date-input"
             value={selectedDate}
-            onChange={(e) => {
-              if (e.target.value) setSelectedDate(e.target.value);
-            }}
+            onChange={(e) => setSelectedDate(e.target.value)}
           />
 
           {/* Quick preset chips */}
@@ -184,13 +187,15 @@ export default function App() {
             <option value={23}>23:00 UTC (Late Day-Ahead)</option>
           </select>
 
-          <button
-            onClick={() => fetchEvaluationData(selectedDate, resolution, cutoffHour)}
-            style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-            title="Refresh from API / Cache"
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          </button>
+          {selectedDate && (
+            <button
+              onClick={() => fetchEvaluationData(selectedDate, resolution, cutoffHour)}
+              style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Refresh from API / Cache"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            </button>
+          )}
         </div>
       </section>
 
@@ -200,6 +205,55 @@ export default function App() {
           <AlertTriangle size={20} color="#fb7185" />
           <span>{errorMsg}</span>
         </div>
+      )}
+
+      {/* Welcome / Blank State if no date selected */}
+      {!selectedDate && (
+        <section className="glass-panel" style={{ padding: '60px 32px', textAlign: 'center', marginBottom: '28px', background: 'radial-gradient(ellipse at top, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.4) 70%)' }}>
+          <div style={{ display: 'inline-flex', padding: '20px', borderRadius: '50%', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', marginBottom: '20px', boxShadow: '0 0 30px rgba(56, 189, 248, 0.2)' }}>
+            <Calendar size={44} color="#38bdf8" />
+          </div>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f8fafc', marginBottom: '10px' }}>
+            Select a Delivery Date to Begin Analysis
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 28px', fontSize: '0.95rem', lineHeight: 1.6 }}>
+            Pick any target delivery date from the calendar input above or select one of the recommended benchmark days below to evaluate Day-Ahead forecast accuracy against actual UK grid settlement generation.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setSelectedDate('2026-01-15')}
+              style={{ background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
+            >
+              <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase' }}>High Wind / Storm</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>15 Jan 2026</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Peak Generation Benchmark</div>
+            </button>
+            <button
+              onClick={() => setSelectedDate('2026-01-20')}
+              style={{ background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
+            >
+              <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, textTransform: 'uppercase' }}>Volatility Ramp</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>20 Jan 2026</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Rapid Generation Shift</div>
+            </button>
+            <button
+              onClick={() => setSelectedDate('2026-01-08')}
+              style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
+            >
+              <div style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase' }}>High Reliability</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>08 Jan 2026</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Strong Model Correlation</div>
+            </button>
+            <button
+              onClick={() => setSelectedDate('2026-10-27')}
+              style={{ background: 'rgba(168, 85, 247, 0.12)', border: '1px solid rgba(168, 85, 247, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
+            >
+              <div style={{ fontSize: '0.75rem', color: '#c084fc', fontWeight: 700, textTransform: 'uppercase' }}>Live Stream</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>27 Oct 2026</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Real-time Elexon Stream</div>
+            </button>
+          </div>
+        </section>
       )}
 
       {/* 3. Executive KPI Metric Cards (Symmetric 6-Card Grid) */}
@@ -295,171 +349,175 @@ export default function App() {
         </section>
       )}
 
-      {/* 4. Main Interactive Comparison Chart */}
-      <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart3 size={20} color="#38bdf8" /> Day-Ahead Forecast vs Actual Wind Generation
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Comparing <strong>Actuals delivered on {selectedDate}</strong> against <strong>Forecasts published on {prevDate}</strong> (Resolution: {resolution === 'hourly' ? 'Hourly Aggregation (24 pts)' : 'Linear Interpolation (48 pts)'})
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.825rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.12)', padding: '5px 10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
-              <span style={{ color: '#34d399', fontWeight: 600 }}>Actual: {selectedDate} (Delivered)</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.12)', padding: '5px 10px', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#38bdf8' }} />
-              <span style={{ color: '#38bdf8', fontWeight: 600 }}>Forecast: {prevDate} (Day-Ahead D-1)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Recharts Container */}
-        <div style={{ width: '100%', height: '360px', marginBottom: '18px' }}>
-          {loading ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-              <RefreshCw size={24} className="animate-spin" /> Fetching and aligning Elexon data...
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartPoints} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.06)" />
-                <XAxis
-                  dataKey="time"
-                  stroke="#64748b"
-                  fontSize={12}
-                  tickLine={false}
-                  interval={resolution === 'hourly' ? 1 : 3}
-                />
-                <YAxis
-                  stroke="#64748b"
-                  fontSize={12}
-                  tickLine={false}
-                  tickFormatter={(val) => `${(val / 1000).toFixed(0)}k MW`}
-                />
-                <Tooltip content={<CustomTooltip deliveryDate={selectedDate} publishDate={prevDate} />} />
-                <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '0.85rem' }} />
-                <Line
-                  type="monotone"
-                  dataKey="actual_mw"
-                  name={`Actual Wind Delivered (${selectedDate})`}
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  dot={{ r: 2, fill: '#10b981' }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="forecast_mw"
-                  name={`Day-Ahead Forecast (Published ${prevDate})`}
-                  stroke="#38bdf8"
-                  strokeWidth={2.5}
-                  strokeDasharray="5 5"
-                  dot={{ r: 2, fill: '#38bdf8' }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* 2nd Chart: Direct Spread / Imbalance Delta (Actual - Forecast) */}
-        {!loading && chartPoints.length > 0 && (
-          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                Hourly Imbalance Variance (Actual - Forecast):
-              </span>
-              <div style={{ display: 'flex', gap: '14px', fontSize: '0.75rem' }}>
-                <span style={{ color: '#34d399' }}>▲ Surplus (Actual &gt; FC)</span>
-                <span style={{ color: '#fb7185' }}>▼ Shortfall (Actual &lt; FC)</span>
+      {/* 4. Main Interactive Comparison Chart & Detailed Table (Only shown when date is selected) */}
+      {selectedDate && (
+        <>
+          <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <BarChart3 size={20} color="#38bdf8" /> Day-Ahead Forecast vs Actual Wind Generation
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Comparing <strong>Actuals delivered on {selectedDate}</strong> against <strong>Forecasts published on {prevDate}</strong> (Resolution: {resolution === 'hourly' ? 'Hourly Aggregation (24 pts)' : 'Linear Interpolation (48 pts)'})
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.825rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.12)', padding: '5px 10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
+                  <span style={{ color: '#34d399', fontWeight: 600 }}>Actual: {selectedDate} (Delivered)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.12)', padding: '5px 10px', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#38bdf8' }} />
+                  <span style={{ color: '#38bdf8', fontWeight: 600 }}>Forecast: {prevDate} (Day-Ahead D-1)</span>
+                </div>
               </div>
             </div>
-            <div style={{ width: '100%', height: '140px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartPoints} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="2 2" stroke="rgba(255, 255, 255, 0.04)" />
-                  <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} interval={resolution === 'hourly' ? 2 : 5} />
-                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={(val) => `${val > 0 ? '+' : ''}${(val / 1000).toFixed(1)}k`} />
-                  <Tooltip content={<CustomDeltaTooltip />} />
-                  <Bar
-                    dataKey="error_mw"
-                    name="Variance Delta (MW)"
-                    shape={(props) => {
-                      const { x, y, width, height, value } = props;
-                      const fill = value >= 0 ? '#10b981' : '#f43f5e';
-                      return <rect x={x} y={y} width={width} height={height} fill={fill} rx={2} opacity={0.85} />;
-                    }}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </section>
 
-      {/* 5. Detailed Settlement Period / Hourly Table */}
-      <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
-          Detailed Schedule & Error Breakdown
-        </h3>
-        <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                <th style={{ padding: '12px 14px' }}>Time Slot</th>
-                {resolution === 'half_hourly' && <th style={{ padding: '12px 14px' }}>Period</th>}
-                <th style={{ padding: '12px 14px' }}>
-                  <span style={{ color: '#38bdf8' }}>Forecast (MW)</span>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Published: {prevDate} (D-1)</div>
-                </th>
-                <th style={{ padding: '12px 14px' }}>
-                  <span style={{ color: '#34d399' }}>Actual (MW)</span>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Delivered: {selectedDate}</div>
-                </th>
-                <th style={{ padding: '12px 14px' }}>Error (Actual - FC)</th>
-                <th style={{ padding: '12px 14px' }}>Trading Risk Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {chartPoints.map((row, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)' }}>
-                  <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#f8fafc' }}>
-                    {row.time}
-                  </td>
-                  {resolution === 'half_hourly' && (
-                    <td style={{ padding: '10px 14px', color: '#94a3b8' }}>
-                      P{row.settlementPeriod}
-                    </td>
-                  )}
-                  <td style={{ padding: '10px 14px', color: '#38bdf8' }}>
-                    {row.forecast_mw.toLocaleString()} MW
-                  </td>
-                  <td style={{ padding: '10px 14px', color: '#34d399', fontWeight: 600 }}>
-                    {row.actual_mw.toLocaleString()} MW
-                  </td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', color: row.error_mw >= 0 ? '#34d399' : '#fb7185' }}>
-                    {row.error_mw > 0 ? `+${row.error_mw.toLocaleString()}` : row.error_mw.toLocaleString()} MW
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    {Math.abs(row.error_mw) < 500 ? (
-                      <span className="badge badge-green">Balanced</span>
-                    ) : row.error_mw > 0 ? (
-                      <span className="badge badge-blue">Surplus Wind</span>
-                    ) : (
-                      <span className="badge badge-rose">Shortfall Risk</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            {/* Recharts Container */}
+            <div style={{ width: '100%', height: '360px', marginBottom: '18px' }}>
+              {loading ? (
+                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                  <RefreshCw size={24} className="animate-spin" /> Fetching and aligning Elexon data...
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartPoints} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.06)" />
+                    <XAxis
+                      dataKey="time"
+                      stroke="#64748b"
+                      fontSize={12}
+                      tickLine={false}
+                      interval={resolution === 'hourly' ? 1 : 3}
+                    />
+                    <YAxis
+                      stroke="#64748b"
+                      fontSize={12}
+                      tickLine={false}
+                      tickFormatter={(val) => `${(val / 1000).toFixed(0)}k MW`}
+                    />
+                    <Tooltip content={<CustomTooltip deliveryDate={selectedDate} publishDate={prevDate} />} />
+                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '0.85rem' }} />
+                    <Line
+                      type="monotone"
+                      dataKey="actual_mw"
+                      name={`Actual Wind Delivered (${selectedDate})`}
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      dot={{ r: 2, fill: '#10b981' }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="forecast_mw"
+                      name={`Day-Ahead Forecast (Published ${prevDate})`}
+                      stroke="#38bdf8"
+                      strokeWidth={2.5}
+                      strokeDasharray="5 5"
+                      dot={{ r: 2, fill: '#38bdf8' }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* 2nd Chart: Direct Spread / Imbalance Delta (Actual - Forecast) */}
+            {!loading && chartPoints.length > 0 && (
+              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    Hourly Imbalance Variance (Actual - Forecast):
+                  </span>
+                  <div style={{ display: 'flex', gap: '14px', fontSize: '0.75rem' }}>
+                    <span style={{ color: '#34d399' }}>▲ Surplus (Actual &gt; FC)</span>
+                    <span style={{ color: '#fb7185' }}>▼ Shortfall (Actual &lt; FC)</span>
+                  </div>
+                </div>
+                <div style={{ width: '100%', height: '140px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartPoints} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="2 2" stroke="rgba(255, 255, 255, 0.04)" />
+                      <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} interval={resolution === 'hourly' ? 2 : 5} />
+                      <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={(val) => `${val > 0 ? '+' : ''}${(val / 1000).toFixed(1)}k`} />
+                      <Tooltip content={<CustomDeltaTooltip />} />
+                      <Bar
+                        dataKey="error_mw"
+                        name="Variance Delta (MW)"
+                        shape={(props) => {
+                          const { x, y, width, height, value } = props;
+                          const fill = value >= 0 ? '#10b981' : '#f43f5e';
+                          return <rect x={x} y={y} width={width} height={height} fill={fill} rx={2} opacity={0.85} />;
+                        }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* 5. Detailed Settlement Period / Hourly Table */}
+          <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+              Detailed Schedule & Error Breakdown
+            </h3>
+            <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                    <th style={{ padding: '12px 14px' }}>Time Slot</th>
+                    {resolution === 'half_hourly' && <th style={{ padding: '12px 14px' }}>Period</th>}
+                    <th style={{ padding: '12px 14px' }}>
+                      <span style={{ color: '#38bdf8' }}>Forecast (MW)</span>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Published: {prevDate} (D-1)</div>
+                    </th>
+                    <th style={{ padding: '12px 14px' }}>
+                      <span style={{ color: '#34d399' }}>Actual (MW)</span>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Delivered: {selectedDate}</div>
+                    </th>
+                    <th style={{ padding: '12px 14px' }}>Error (Actual - FC)</th>
+                    <th style={{ padding: '12px 14px' }}>Trading Risk Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {chartPoints.map((row, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)' }}>
+                      <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#f8fafc' }}>
+                        {row.time}
+                      </td>
+                      {resolution === 'half_hourly' && (
+                        <td style={{ padding: '10px 14px', color: '#94a3b8' }}>
+                          P{row.settlementPeriod}
+                        </td>
+                      )}
+                      <td style={{ padding: '10px 14px', color: '#38bdf8' }}>
+                        {row.forecast_mw.toLocaleString()} MW
+                      </td>
+                      <td style={{ padding: '10px 14px', color: '#34d399', fontWeight: 600 }}>
+                        {row.actual_mw.toLocaleString()} MW
+                      </td>
+                      <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', color: row.error_mw >= 0 ? '#34d399' : '#fb7185' }}>
+                        {row.error_mw > 0 ? `+${row.error_mw.toLocaleString()}` : row.error_mw.toLocaleString()} MW
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        {Math.abs(row.error_mw) < 500 ? (
+                          <span className="badge badge-green">Balanced</span>
+                        ) : row.error_mw > 0 ? (
+                          <span className="badge badge-blue">Surplus Wind</span>
+                        ) : (
+                          <span className="badge badge-rose">Shortfall Risk</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
 
       {/* 6. Technical & Methodology Explainer Card (Perfect for Video Demo Part 1 & Part 2) */}
       <footer className="glass-panel" style={{ padding: '20px 24px', background: 'rgba(15, 23, 42, 0.6)' }}>
