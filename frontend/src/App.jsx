@@ -120,15 +120,17 @@ export default function App() {
             type="date"
             className="custom-date-input"
             value={selectedDate}
+            min="2026-01-01"
+            max="2026-01-31"
             onChange={(e) => setSelectedDate(e.target.value)}
           />
 
           {/* Quick preset chips */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button
               className="preset-chip"
               onClick={() => setSelectedDate('2026-01-15')}
-              title="Standard January Benchmark Date"
+              title="Official January Benchmark Date"
             >
               15 Jan (Benchmark)
             </button>
@@ -141,10 +143,24 @@ export default function App() {
             </button>
             <button
               className="preset-chip"
-              onClick={() => setSelectedDate('2026-10-27')}
-              title="Recent Live Stream Date"
+              onClick={() => setSelectedDate('2026-01-08')}
+              title="High Reliability Day"
             >
-              27 Oct (Recent)
+              08 Jan
+            </button>
+            <button
+              className="preset-chip"
+              onClick={() => setSelectedDate('2026-01-20')}
+              title="Volatility Ramp Day"
+            >
+              20 Jan
+            </button>
+            <button
+              className="preset-chip"
+              onClick={() => setSelectedDate('2026-01-27')}
+              title="Winter Generation Day"
+            >
+              27 Jan
             </button>
           </div>
         </div>
@@ -207,11 +223,11 @@ export default function App() {
             <span style={{ fontSize: '0.925rem' }}>{errorMsg}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.8rem', color: '#fda4af' }}>Try a supported evaluation date:</span>
+            <span style={{ fontSize: '0.8rem', color: '#fda4af' }}>Select a January 2026 delivery date:</span>
             <button className="preset-chip" onClick={() => setSelectedDate('2026-01-15')}>15 Jan 2026 (Benchmark)</button>
             <button className="preset-chip" onClick={() => setSelectedDate('2026-01-08')}>08 Jan 2026</button>
             <button className="preset-chip" onClick={() => setSelectedDate('2026-01-20')}>20 Jan 2026</button>
-            <button className="preset-chip" onClick={() => setSelectedDate('2026-10-27')}>27 Oct 2026 (Live Stream)</button>
+            <button className="preset-chip" onClick={() => setSelectedDate('2026-01-27')}>27 Jan 2026</button>
           </div>
         </div>
       )}
