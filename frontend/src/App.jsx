@@ -207,53 +207,13 @@ export default function App() {
         </div>
       )}
 
-      {/* Welcome / Blank State if no date selected */}
+      {/* Subtle indicator when no date is selected */}
       {!selectedDate && (
-        <section className="glass-panel" style={{ padding: '60px 32px', textAlign: 'center', marginBottom: '28px', background: 'radial-gradient(ellipse at top, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.4) 70%)' }}>
-          <div style={{ display: 'inline-flex', padding: '20px', borderRadius: '50%', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', marginBottom: '20px', boxShadow: '0 0 30px rgba(56, 189, 248, 0.2)' }}>
-            <Calendar size={44} color="#38bdf8" />
-          </div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f8fafc', marginBottom: '10px' }}>
-            Select a Delivery Date to Begin Analysis
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 28px', fontSize: '0.95rem', lineHeight: 1.6 }}>
-            Pick any target delivery date from the calendar input above or select one of the recommended benchmark days below to evaluate Day-Ahead forecast accuracy against actual UK grid settlement generation.
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '14px', border: '1px dashed var(--border-color)', marginBottom: '24px' }}>
+          <p style={{ fontSize: '0.925rem', color: '#94a3b8', margin: 0 }}>
+            Please select a delivery date from the calendar above to view Day-Ahead wind forecasts and accuracy metrics.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setSelectedDate('2026-01-15')}
-              style={{ background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase' }}>High Wind / Storm</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>15 Jan 2026</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Peak Generation Benchmark</div>
-            </button>
-            <button
-              onClick={() => setSelectedDate('2026-01-20')}
-              style={{ background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, textTransform: 'uppercase' }}>Volatility Ramp</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>20 Jan 2026</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Rapid Generation Shift</div>
-            </button>
-            <button
-              onClick={() => setSelectedDate('2026-01-08')}
-              style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase' }}>High Reliability</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>08 Jan 2026</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Strong Model Correlation</div>
-            </button>
-            <button
-              onClick={() => setSelectedDate('2026-10-27')}
-              style={{ background: 'rgba(168, 85, 247, 0.12)', border: '1px solid rgba(168, 85, 247, 0.35)', color: '#f8fafc', padding: '12px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px', transition: 'all 0.2s ease' }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#c084fc', fontWeight: 700, textTransform: 'uppercase' }}>Live Stream</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>27 Oct 2026</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Real-time Elexon Stream</div>
-            </button>
-          </div>
-        </section>
+        </div>
       )}
 
       {/* 3. Executive KPI Metric Cards (Symmetric 6-Card Grid) */}
