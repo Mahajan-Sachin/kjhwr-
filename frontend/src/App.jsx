@@ -6,7 +6,8 @@ import {
   Zap, Calendar, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, ArrowUpRight, ArrowDownRight, Layers, Info
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8000';
+// Dynamic API URL: Uses relative path '/api' in production, or localhost:8000 in dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : '');
 
 export default function App() {
   const [selectedDate, setSelectedDate] = useState('2026-01-15');
