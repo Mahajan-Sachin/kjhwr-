@@ -199,16 +199,34 @@ export default function App() {
         </div>
       </section>
 
-      {/* Error Banner */}
+      {/* Error Banner with Quick Recovery */}
       {errorMsg && (
-        <div style={{ background: 'rgba(244, 63, 94, 0.15)', border: '1px solid rgba(244, 63, 94, 0.4)', borderRadius: '14px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: '#fecdd3' }}>
-          <AlertTriangle size={20} color="#fb7185" />
-          <span>{errorMsg}</span>
+        <div style={{ background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.35)', borderRadius: '14px', padding: '18px 22px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fecdd3' }}>
+            <AlertTriangle size={20} color="#fb7185" />
+            <span style={{ fontSize: '0.925rem' }}>{errorMsg}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.8rem', color: '#fda4af' }}>Try a supported evaluation date:</span>
+            <button className="preset-chip" onClick={() => setSelectedDate('2026-01-15')}>15 Jan 2026 (Benchmark)</button>
+            <button className="preset-chip" onClick={() => setSelectedDate('2026-01-08')}>08 Jan 2026</button>
+            <button className="preset-chip" onClick={() => setSelectedDate('2026-01-20')}>20 Jan 2026</button>
+            <button className="preset-chip" onClick={() => setSelectedDate('2026-10-27')}>27 Oct 2026 (Live Stream)</button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Indicator */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
+          <RefreshCw size={28} className="animate-spin" style={{ marginBottom: '12px', color: '#38bdf8' }} />
+          <div style={{ fontSize: '0.95rem', color: '#f8fafc' }}>Fetching & aligning Elexon BMRS generation datasets...</div>
+          <div style={{ fontSize: '0.8rem', marginTop: '4px' }}>Connecting to UK National Grid Day-Ahead stream</div>
         </div>
       )}
 
       {/* Subtle indicator when no date is selected */}
-      {!selectedDate && (
+      {!selectedDate && !loading && (
         <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '14px', border: '1px dashed var(--border-color)', marginBottom: '24px' }}>
           <p style={{ fontSize: '0.925rem', color: '#94a3b8', margin: 0 }}>
             Please select a delivery date from the calendar above to view Day-Ahead wind forecasts and accuracy metrics.
@@ -217,7 +235,7 @@ export default function App() {
       )}
 
       {/* 3. Executive KPI Metric Cards (Symmetric 6-Card Grid) */}
-      {metrics && (
+      {!loading && metrics && (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
           {/* MAE */}
           <div className="glass-panel" style={{ padding: '18px 20px' }}>
@@ -309,8 +327,8 @@ export default function App() {
         </section>
       )}
 
-      {/* 4. Main Interactive Comparison Chart & Detailed Table (Only shown when date is selected) */}
-      {selectedDate && (
+      {/* 4. Main Interactive Comparison Chart & Detailed Table (Only shown when valid data is loaded) */}
+      {!errorMsg && !loading && chartPoints.length > 0 && (
         <>
           <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
