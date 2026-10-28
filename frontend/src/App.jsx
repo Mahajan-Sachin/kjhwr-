@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, ComposedChart
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
   Zap, Calendar, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, ArrowUpRight, ArrowDownRight, Layers, Info
@@ -369,7 +369,7 @@ export default function App() {
             </div>
 
             {/* Recharts Container */}
-            <div style={{ width: '100%', height: '360px', marginBottom: '18px' }}>
+            <div style={{ width: '100%', height: '400px' }}>
               {loading ? (
                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
                   <RefreshCw size={24} className="animate-spin" /> Fetching and aligning Elexon data...
@@ -416,40 +416,6 @@ export default function App() {
                 </ResponsiveContainer>
               )}
             </div>
-
-            {/* 2nd Chart: Direct Spread / Imbalance Delta (Actual - Forecast) */}
-            {!loading && chartPoints.length > 0 && (
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    Hourly Imbalance Variance (Actual - Forecast):
-                  </span>
-                  <div style={{ display: 'flex', gap: '14px', fontSize: '0.75rem' }}>
-                    <span style={{ color: '#34d399' }}>▲ Surplus (Actual &gt; FC)</span>
-                    <span style={{ color: '#fb7185' }}>▼ Shortfall (Actual &lt; FC)</span>
-                  </div>
-                </div>
-                <div style={{ width: '100%', height: '140px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartPoints} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="2 2" stroke="rgba(255, 255, 255, 0.04)" />
-                      <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} interval={resolution === 'hourly' ? 2 : 5} />
-                      <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={(val) => `${val > 0 ? '+' : ''}${(val / 1000).toFixed(1)}k`} />
-                      <Tooltip content={<CustomDeltaTooltip />} />
-                      <Bar
-                        dataKey="error_mw"
-                        name="Variance Delta (MW)"
-                        shape={(props) => {
-                          const { x, y, width, height, value } = props;
-                          const fill = value >= 0 ? '#10b981' : '#f43f5e';
-                          return <rect x={x} y={y} width={width} height={height} fill={fill} rx={2} opacity={0.85} />;
-                        }}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
           </section>
 
           {/* 5. Detailed Settlement Period / Hourly Table */}
@@ -551,28 +517,6 @@ function CustomTooltip({ active, payload, deliveryDate, publishDate }) {
           <span style={{ color: '#94a3b8' }}>Imbalance:</span>
           <strong style={{ color: isSurplus ? '#34d399' : '#fb7185' }}>
             {isSurplus ? `+${data.error_mw.toLocaleString()}` : data.error_mw.toLocaleString()} MW
-          </strong>
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
-// Custom Tooltip for Variance Delta Bars
-function CustomDeltaTooltip({ active, payload }) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const isSurplus = data.error_mw >= 0;
-    return (
-      <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', padding: '10px 14px', fontSize: '0.85rem', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.4)' }}>
-        <div style={{ fontWeight: 600, color: '#f8fafc', marginBottom: '4px' }}>
-          Time: {data.time} {data.settlementPeriod ? `(P${data.settlementPeriod})` : ''}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: '#94a3b8' }}>Variance:</span>
-          <strong style={{ color: isSurplus ? '#34d399' : '#fb7185' }}>
-            {isSurplus ? `+${data.error_mw.toLocaleString()} MW (Surplus Wind)` : `${data.error_mw.toLocaleString()} MW (Shortfall Risk)`}
           </strong>
         </div>
       </div>
