@@ -425,15 +425,27 @@ export default function App() {
 
           {/* 5. Detailed Settlement Period / Hourly Table */}
           <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
-              Detailed Schedule & Error Breakdown
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                  Detailed Schedule & Error Breakdown
+                </h3>
+                <span className="badge badge-blue" style={{ fontSize: '0.75rem', padding: '3px 9px', fontWeight: 700 }}>
+                  {resolution === 'hourly' ? '24 Hourly Contract Slots (H01 – H24)' : '48 Settlement Periods (P01 – P48)'}
+                </span>
+              </div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Total Slots: <strong style={{ color: '#f8fafc' }}>{chartPoints.length}</strong>
+              </span>
+            </div>
             <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
                     <th style={{ padding: '12px 14px' }}>Time Slot</th>
-                    {resolution === 'half_hourly' && <th style={{ padding: '12px 14px' }}>Period</th>}
+                    <th style={{ padding: '12px 14px' }}>
+                      {resolution === 'half_hourly' ? 'Period (1–48)' : 'Contract Slot (1–24)'}
+                    </th>
                     <th style={{ padding: '12px 14px' }}>
                       <span style={{ color: '#38bdf8' }}>Forecast (MW)</span>
                       <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Published: {prevDate} (D-1)</div>
@@ -452,11 +464,22 @@ export default function App() {
                       <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#f8fafc' }}>
                         {row.time}
                       </td>
-                      {resolution === 'half_hourly' && (
-                        <td style={{ padding: '10px 14px', color: '#94a3b8' }}>
-                          P{row.settlementPeriod}
-                        </td>
-                      )}
+                      <td style={{ padding: '10px 14px' }}>
+                        <span style={{
+                          background: 'rgba(56, 189, 248, 0.1)',
+                          color: '#38bdf8',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontWeight: 600,
+                          fontSize: '0.78rem',
+                          fontFamily: 'var(--font-mono)',
+                          border: '1px solid rgba(56, 189, 248, 0.2)'
+                        }}>
+                          {resolution === 'half_hourly'
+                            ? `P${String(row.settlementPeriod).padStart(2, '0')}`
+                            : `H${String(idx + 1).padStart(2, '0')}`}
+                        </span>
+                      </td>
                       <td style={{ padding: '10px 14px', color: '#38bdf8' }}>
                         {row.forecast_mw.toLocaleString()} MW
                       </td>
