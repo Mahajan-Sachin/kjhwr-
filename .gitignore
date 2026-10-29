@@ -30,3 +30,5 @@ yarn-error.log*
 Thumbs.db
 .playwright-mcp/
 ~$*
+script.md
+scropt.md
