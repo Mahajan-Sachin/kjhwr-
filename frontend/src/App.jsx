@@ -349,11 +349,16 @@ export default function App() {
           <section className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <BarChart3 size={20} color="#38bdf8" /> Day-Ahead Forecast vs Actual Wind Generation
-                </h2>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Comparing <strong>Actuals delivered on {selectedDate}</strong> against <strong>Forecasts published on {prevDate}</strong> (Resolution: {resolution === 'hourly' ? 'Hourly Aggregation (24 pts)' : 'Linear Interpolation (48 pts)'})
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                    <BarChart3 size={20} color="#38bdf8" /> Day-Ahead Forecast vs Actual Wind Generation
+                  </h2>
+                  <span className="badge badge-blue" style={{ fontSize: '0.75rem', padding: '3px 9px', letterSpacing: '0.03em', fontWeight: 700 }}>
+                    Mode: {resolution === 'hourly' ? 'Hourly (24 pts)' : '30-Min Settlement Periods (48 pts)'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Comparing <strong>Actuals delivered on {selectedDate}</strong> against <strong>Forecasts published on {prevDate}</strong>
                 </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.825rem', flexWrap: 'wrap' }}>
@@ -391,7 +396,7 @@ export default function App() {
                       tickLine={false}
                       tickFormatter={(val) => `${(val / 1000).toFixed(0)}k MW`}
                     />
-                    <Tooltip content={<CustomTooltip deliveryDate={selectedDate} publishDate={prevDate} />} />
+                    <Tooltip content={<CustomTooltip deliveryDate={selectedDate} publishDate={prevDate} resolution={resolution} />} />
                     <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '0.85rem' }} />
                     <Line
                       type="monotone"
@@ -495,15 +500,20 @@ export default function App() {
   );
 }
 
-// Custom Tooltip for Recharts with Explicit Dates
-function CustomTooltip({ active, payload, deliveryDate, publishDate }) {
+// Custom Tooltip for Recharts with Explicit Dates & Mode
+function CustomTooltip({ active, payload, deliveryDate, publishDate, resolution }) {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const isSurplus = data.error_mw >= 0;
     return (
-      <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', padding: '14px', boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)', minWidth: '240px' }}>
-        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc', marginBottom: '8px', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
-          Delivery Slot: {data.time} ({deliveryDate}) {data.settlementPeriod ? `• Period ${data.settlementPeriod}` : ''}
+      <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', padding: '14px', boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)', minWidth: '250px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc' }}>
+            {data.time} ({deliveryDate}) {resolution === 'half_hourly' && data.settlementPeriod ? `• P${data.settlementPeriod}` : ''}
+          </span>
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+            {resolution === 'hourly' ? 'Hourly (24 pts)' : '30-Min (48 pts)'}
+          </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.85rem', marginBottom: '4px' }}>
           <span style={{ color: '#94a3b8' }}>Actual ({deliveryDate}):</span>
