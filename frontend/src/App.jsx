@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
-  Zap, Calendar, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, ArrowUpRight, ArrowDownRight, Layers, Info
+  Zap, Calendar, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, ArrowUpRight, ArrowDownRight, Info
 } from 'lucide-react';
 
 // Dynamic API URL: Uses relative path '/api' in production, or localhost:8000 in dev
@@ -99,10 +99,7 @@ export default function App() {
         {/* Live Badges */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span className="badge badge-green">
-            <ShieldCheck size={14} /> Elexon BMRS Live Stream
-          </span>
-          <span className="badge badge-blue">
-            <Layers size={14} /> AI-Assisted Architecture
+            <ShieldCheck size={14} /> Elexon BMRS Live Connected
           </span>
         </div>
       </header>
